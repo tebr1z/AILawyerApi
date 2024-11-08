@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HuquqApi.Data.Migrations
 {
     [DbContext(typeof(HuquqDbContext))]
-    partial class HuquqDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241108215653_ChatUpdate")]
+    partial class ChatUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -275,7 +278,7 @@ namespace HuquqApi.Data.Migrations
                         {
                             Id = "14",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "4fadab10-cf72-4360-8f0d-01edde1968f2",
+                            ConcurrencyStamp = "47100af5-cfd0-4ea7-a8e7-abafb66811bb",
                             Email = "hasimovtabriz@gmail.com",
                             EmailConfirmed = true,
                             FullName = "Tabriz ",
@@ -286,11 +289,11 @@ namespace HuquqApi.Data.Migrations
                             MonthlyQuestionCount = 0,
                             NormalizedEmail = "HASIMOVTABRIZ@GMAIL.COM",
                             NormalizedUserName = "ADMINUSER",
-                            PasswordHash = "AQAAAAIAAYagAAAAELLsw8Gcxdb/Mby6C91N4USIJLr8kz9+9s5nU1AX/CwAEmsots28/dOgg9/0uL20CA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEPKd6NIQU8YUuDTwOKR4M7ofgfG3jX8nmC6h0h5IOqIyP+WJLDzmNVKZfYvjYmrwGw==",
                             PhoneNumberConfirmed = false,
                             RequestCount = 0,
                             RequestCountTime = 0,
-                            SecurityStamp = "4b0776d1-48b5-44a0-b638-e85441de72b0",
+                            SecurityStamp = "b031075b-9cac-465a-8178-03e18fc7ce24",
                             TwoFactorEnabled = false,
                             UserName = "tabriz"
                         },
@@ -298,7 +301,7 @@ namespace HuquqApi.Data.Migrations
                         {
                             Id = "2",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "0b3a959a-1bf1-4063-9703-f430615cb6ca",
+                            ConcurrencyStamp = "b6b4fcf9-8790-41a3-951e-e952c559863b",
                             Email = "tebitebo2001@gmail.com",
                             EmailConfirmed = true,
                             FullName = "Admin",
@@ -309,11 +312,11 @@ namespace HuquqApi.Data.Migrations
                             MonthlyQuestionCount = 0,
                             NormalizedEmail = "TEBITEBO2001@GMAIL.COM",
                             NormalizedUserName = "ADMINUSER1",
-                            PasswordHash = "AQAAAAIAAYagAAAAENZxtlvn/keTuo0F0R9dBSkHPD+DTf6CP88xgWhncejIGmIFhG7GSrruoQx63Rq+jA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEnMYXRUjggWUNa7wFxrKWVnMsNVVFVqklxlV4lW4ok2Tn2BpTkEP/NjQnTnZF6rog==",
                             PhoneNumberConfirmed = false,
                             RequestCount = 0,
                             RequestCountTime = 0,
-                            SecurityStamp = "ab32add0-3b2e-4164-8145-7a40a3e1294b",
+                            SecurityStamp = "605d47c4-65df-4d0a-b04f-2351f6b0018d",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });

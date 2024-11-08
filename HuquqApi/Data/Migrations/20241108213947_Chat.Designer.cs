@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HuquqApi.Data.Migrations
 {
     [DbContext(typeof(HuquqDbContext))]
-    partial class HuquqDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241108213947_Chat")]
+    partial class Chat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -101,9 +104,11 @@ namespace HuquqApi.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ContentBot")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ContentUser")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("SentAt")
@@ -275,7 +280,7 @@ namespace HuquqApi.Data.Migrations
                         {
                             Id = "14",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "4fadab10-cf72-4360-8f0d-01edde1968f2",
+                            ConcurrencyStamp = "bc57177c-4016-4764-9740-6784db204dd6",
                             Email = "hasimovtabriz@gmail.com",
                             EmailConfirmed = true,
                             FullName = "Tabriz ",
@@ -286,11 +291,11 @@ namespace HuquqApi.Data.Migrations
                             MonthlyQuestionCount = 0,
                             NormalizedEmail = "HASIMOVTABRIZ@GMAIL.COM",
                             NormalizedUserName = "ADMINUSER",
-                            PasswordHash = "AQAAAAIAAYagAAAAELLsw8Gcxdb/Mby6C91N4USIJLr8kz9+9s5nU1AX/CwAEmsots28/dOgg9/0uL20CA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEA3IzUKlK3rKzR5dE0TE5nKRULsLZkAwER2v+G5Tdgx/ikp61no4GlhlLR55FL99kg==",
                             PhoneNumberConfirmed = false,
                             RequestCount = 0,
                             RequestCountTime = 0,
-                            SecurityStamp = "4b0776d1-48b5-44a0-b638-e85441de72b0",
+                            SecurityStamp = "d2b4d8f7-17bf-423c-b88a-dfc94614519e",
                             TwoFactorEnabled = false,
                             UserName = "tabriz"
                         },
@@ -298,7 +303,7 @@ namespace HuquqApi.Data.Migrations
                         {
                             Id = "2",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "0b3a959a-1bf1-4063-9703-f430615cb6ca",
+                            ConcurrencyStamp = "8ec6dafd-959f-40af-9767-083b6b4e1f37",
                             Email = "tebitebo2001@gmail.com",
                             EmailConfirmed = true,
                             FullName = "Admin",
@@ -309,11 +314,11 @@ namespace HuquqApi.Data.Migrations
                             MonthlyQuestionCount = 0,
                             NormalizedEmail = "TEBITEBO2001@GMAIL.COM",
                             NormalizedUserName = "ADMINUSER1",
-                            PasswordHash = "AQAAAAIAAYagAAAAENZxtlvn/keTuo0F0R9dBSkHPD+DTf6CP88xgWhncejIGmIFhG7GSrruoQx63Rq+jA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEHFGpxjex4mKwfCP9xYw3Fsh8eOm4Isg0TPv141xLDyc8sK+d9nip0bpqX0M7qpEIQ==",
                             PhoneNumberConfirmed = false,
                             RequestCount = 0,
                             RequestCountTime = 0,
-                            SecurityStamp = "ab32add0-3b2e-4164-8145-7a40a3e1294b",
+                            SecurityStamp = "c18f0e50-7080-478c-a1a3-4e7f5cee9492",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });

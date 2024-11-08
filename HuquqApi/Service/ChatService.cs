@@ -14,13 +14,17 @@ public class ChatService
         using (var client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
-          
-            var prompt = $"PDF məzmunu: {pdfContent}\n\n" +
-                         $"Sual: {question}\n\n" +
-                         "Əgər sual PDF məzmununda varsa, yalnız bu PDF məzmununa əsaslanaraq cavab ver. " +
-                         "Əgər sual PDF məzmununda yoxdursa,Pdf məzmunu yoxdur və ya məlumat yoxdur yazma, lakin hüquqi bir sual isə və mürəkkəb deyilsə, öz biliklərinlə cavab ver.:" +
-                         "Əgər sual nə PDF məzmunu ilə, nə də hüquqi mövzularla əlaqəli deyilsə, bu mesajı qaytar və Pdf məzmunu yoxdur məlumat yoxdur yazma yalnız bu mesajı qaytar: 'Bu sual hüquqi mövzularla əlaqəli deyil Və ya Daha mürəkəbbdir. Məsləhət görərik`ki . Ətraflı məlumat üçün hüquq məsləhətçisinə müraciət edin. Hüquqi məsəlləri  üçün linkə kilik edin ' " +
-                         "Bütün cavabları yalnız Azərbaycan dilində yaz.";
+
+            var prompt = $"Sual: {question}\n\n" +
+                         "Əgər sual hüquqi bir mövzu ilə əlaqəli deyilsə, bu mesajı qaytar: " +
+                         "'Bu sual hüquqi mövzularla əlaqəli deyil və ya daha mürəkkəbdir. Məsləhət görərik ki, ətraflı məlumat üçün hüquq məsləhətçisinə müraciət edin. Hüquqi məsələlər üçün linkə klik edin.' " +
+                         "Əgər sual Azərbaycan hüququ ilə əlaqəli və mürəkkəb deyilsə, yalnız Azərbaycan qanunvericiliyinə əsasən qısa və dəqiq cavab ver. Bütün cavabları yalnız Azərbaycan dilində yaz.";
+            
+            var network = $"Sual: {question}\n\n" +
+                      "Əgər sual hüquqi bir mövzu ilə əlaqəli deyilsə, bu mesajı qaytar: " +
+                      "'Bu sual hüquqi mövzularla əlaqəli deyil və ya daha mürəkkəbdir. Məsləhət görərik ki, ətraflı məlumat üçün hüquq məsləhətçisinə müraciət edin. Hüquqi məsələlər üçün linkə klik edin.' " +
+                      "Əgər sual Azərbaycan hüququ ilə əlaqəli və mürəkkəb deyilsə, yalnız Azərbaycan qanunvericiliyinə əsasən qısa və dəqiq cavab ver. Bütün cavabları yalnız Azərbaycan dilində yaz.";
+
 
             var requestBody = new
             {

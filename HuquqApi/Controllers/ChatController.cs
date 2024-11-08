@@ -55,25 +55,124 @@ public class ChatController : ControllerBase
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     [HttpPost("send-message")]
     public async Task<IActionResult> SendMessage([FromBody] SendMessageRequest request)
     {
+  
+        var jwtUserId = User.FindFirst("id")?.Value;
+        if (string.IsNullOrEmpty(jwtUserId))
+        {
+            return Unauthorized(new { message = "JWT-dən istifadəçi ID-sini əldə etmək alınmadı." });
+        }
+
+      
+        var user = await _userManager.FindByIdAsync(jwtUserId);
+        if (user == null)
+        {
+            return BadRequest(new { message = "İstifadəçi tapılmadı." });
+        }
+
+    
+        if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow)
+        {
+            return Unauthorized(new
+            {
+                message = "İstifadəçi qadağan edildi.",
+                banEndTime = user.LockoutEnd.Value,
+                remainingBanTime = $"{(user.LockoutEnd.Value - DateTimeOffset.UtcNow).TotalMinutes:F2} Dəqiqə"
+            });
+        }
+
+        await _userManager.ResetAccessFailedCountAsync(user);
+
+     
+        if (_chatService == null || _dbContext == null)
+        {
+            return StatusCode(500, "_chatService Server Xetası ");
+        }
+
        
+        if (request == null || string.IsNullOrEmpty(request.Message))
+        {
+            return StatusCode(102, new { message = "Etibarsız sorğu. sorğu və mesaj tələb olunur." });
+        }
+
+      
+        if (!user.EmailConfirmed)
+        {
+            return BadRequest(new { message = "E-poçt ünvanınızı təsdiqləyin." });
+        }
+
+
+        if (!await CanUserMakeRequest(user))
+        {
+            return StatusCode(101, new { message = "Gündəlik sorğu limitinizə çatdınız. 24 saat ərzində yenidən cəhd edə bilərsiniz, biz həmişə buradayıq 😊" });
+        }
+
+
+        Chat chat = await _dbContext.Chats
+            .FirstOrDefaultAsync(c => c.Id == request.ChatId && c.UserId == jwtUserId);
+
+        if (chat == null)
+        {
+            chat = new Chat
+            {
+                UserId = user.Id,
+                Title = request.Message.Length > 10 ? request.Message[..10] : request.Message,
+                CreatedAt = DateTime.UtcNow,
+                Messages = new List<Message>()
+            };
+
+            _dbContext.Chats.Add(chat);
+            await _dbContext.SaveChangesAsync(); 
+        }
+
+        var userMessage = new Message
+        {
+            ContentUser = request.Message,
+            SentAt = DateTime.UtcNow,
+            UpdateTime = DateTime.UtcNow,
+            ChatId = chat.Id
+        };
+
+        _dbContext.Messages.Add(userMessage);
+        await _dbContext.SaveChangesAsync(); 
+
+        try
+        {
+         
+            string response = await _chatService.SendMessageToChatGPTAsync(request.Message, null);
+            if (string.IsNullOrEmpty(response))
+            {
+                return StatusCode(103, "Üzür istəyirik ChatBot cavab vermədi. Daha sonra təkrar yoxlayın");
+            }
+
+            userMessage.ContentBot = response;
+            _dbContext.Messages.Update(userMessage);
+            await _dbContext.SaveChangesAsync(); 
+
+            return Ok(new
+            {
+                chatId = chat.Id,
+                userMessage = userMessage.ContentUser,
+                botResponse = userMessage.ContentBot
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Hata: {ex.Message}");
+        }
+    }
+
+
+
+
+
+
+
+    [HttpGet("get-chats")]
+    public async Task<IActionResult> GetChats()
+    {
         var jwtUserId = User.FindFirst("id")?.Value;
 
         if (string.IsNullOrEmpty(jwtUserId))
@@ -81,153 +180,16 @@ public class ChatController : ControllerBase
             return Unauthorized(new { message = "JWT-dən istifadəçi ID-sini əldə etmək mümkün olmadı" });
         }
 
-        
-        var user = await _userManager.FindByIdAsync(jwtUserId);
-        if (user == null)
-        {
-            return BadRequest(new { message = "İstifadəçi tapılmadı." });
-        }
-
-        // Ban kontrolü
-        if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow)
-        {
-            var remainingLockoutTime = user.LockoutEnd.Value - DateTimeOffset.UtcNow;
-            return Unauthorized(new
-            {
-                message = "İstifadəçi qadağan edildi.",
-                banEndTime = user.LockoutEnd.Value,
-                remainingBanTime = $"{remainingLockoutTime.TotalMinutes:F2} dəqiqə"
-            });
-        }
-
-     
-        await _userManager.ResetAccessFailedCountAsync(user);
-
-        if (_chatService == null)
-        {
-            return StatusCode(500, "_chatService Başlamadı.");
-        }
-
-        if (request == null || string.IsNullOrEmpty(request.Message))
-        {
-            return BadRequest(new { message = "Uğursuz istək. 'request' və 'mesaj' məcburidir." });
-        }
-
-        if (!user.EmailConfirmed)
-        {
-            return BadRequest(new { message = "E-poçt ünvanınız təsdiqlənməyib. Mesaj göndərmək üçün e-poçtunuzu təsdiqləyin." });
-        }
-
-        if (!await CanUserMakeRequest(user))
-        {
-            return BadRequest(new { message = "Aylıq sorğu haqqınız dolub. Daha çox sorğu üçün abunə olun." });
-        }
-
-        if (_dbContext == null)
-        {
-            return StatusCode(500, "_dbContext tapılmadı.");
-        }
-
-        Chat chat;
-        if (!request.ChatId.HasValue || request.ChatId.Value == 0)
-        {
-            
-            chat = await _dbContext.Chats.FirstOrDefaultAsync(c => c.UserId == jwtUserId);
-
-            if (chat == null)
-            {
-               
-                chat = new Chat
-                {
-                    UserId = user.Id,
-                    Title = request.Message.Length > 10 ? request.Message.Substring(0, 10) : request.Message,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdateTime = DateTime.UtcNow,
-                    Messages = new List<Message>()
-                };
-
-                _dbContext.Chats.Add(chat);
-                await _dbContext.SaveChangesAsync();
-            }
-        }
-        else
-        {
-            chat = await _dbContext.Chats.FirstOrDefaultAsync(c => c.Id == request.ChatId.Value && c.UserId == jwtUserId);
-
-            if (chat == null)
-            {
-                return BadRequest(new { message = "Bu chat id uyğun chat tapılmadı." });
-            }
-        }
-
-        var userMessage = new Message
-        {
-            Content = request.Message,
-            Role = "ContentUser",
-            SentAt = DateTime.UtcNow,
-            ChatId = chat.Id
-        };
-        _dbContext.Messages.Add(userMessage);
-
-        string response;
-        try
-        {
-            response = await _chatService.SendMessageToChatGPTAsync(request.Message, null);
-            if (string.IsNullOrEmpty(response))
-            {
-                return StatusCode(500, "ChatBot düzgün cavab vermədi.");
-            }
-
-            var assistantMessage = new Message
-            {
-                Content = response,
-                Role = "ContentBot",
-                SentAt = DateTime.UtcNow,
-                ChatId = chat.Id
-            };
-            _dbContext.Messages.Add(assistantMessage);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"ChatBot Çağrısı sırasında bir xəta oldu: {ex.Message}");
-        }
-
-        try
-        {
-            _dbContext.Chats.Update(chat);
-            await _dbContext.SaveChangesAsync();
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Chat Database Update sırasında bir xəta oldu: {ex.Message}");
-        }
-
-        return Ok(new { chatId = chat.Id, userMessage = request.Message, botResponse = response });
-    }
-
-    [HttpGet("get-chats")]
-    public async Task<IActionResult> GetChats(string userId)
-    {
-        if (string.IsNullOrEmpty(userId))
-        {
-            return BadRequest(new { message = " İstfadəçi İD mütləqdər." });
-        }
-
+      
         var chats = await _dbContext.Chats
-            .Where(c => c.UserId == userId)
-            .Select(c => new
-            {
-                c.Id,
-                c.Title,
-                c.CreatedAt,
-           
-            })
+            .Where(c => c.UserId == jwtUserId)
             .OrderBy(c => c.CreatedAt)
+            .Select(c => new { c.Id, c.Title, c.CreatedAt })
             .ToListAsync();
 
-        if (chats == null || chats.Count == 0)
+        if (chats == null || !chats.Any())
         {
-            return NotFound("İstfadəçi ait söhbət tapılmadı.");
+            return NotFound("İstifadəçi üçün heç bir söhbət tapılmadı.");
         }
 
         return Ok(chats);
@@ -242,28 +204,33 @@ public class ChatController : ControllerBase
 
 
 
-    [HttpPost("create-chat")] 
+
+
+
+
+
+    [HttpPost("create-chat")]
     public async Task<IActionResult> CreateChat([FromBody] CreateChatRequest request)
     {
-        // Validate the incoming request
-        if (string.IsNullOrEmpty(request.UserId))
+        var jwtUserId = User.FindFirst("id")?.Value;
+        if (string.IsNullOrEmpty(jwtUserId))
         {
-            return BadRequest("Etibarsız sorğu. 'userId' Mütləqdir.");
+            return Unauthorized(new { message = "stifadəçi identifikatoru JWT-dən əldə edilə bilmədi." });
         }
 
+     
         if (string.IsNullOrEmpty(request.Title))
         {
-            return BadRequest("Etibarsız sorğu. 'title' Mütləqdir.");
+            return BadRequest(new { message = "Etibarsız sorğu. 'title' mütləqdir." });
         }
 
-        // Find the user
-        var user = await _userManager.FindByIdAsync(request.UserId);
+   
+        var user = await _userManager.FindByIdAsync(jwtUserId);
         if (user == null)
         {
-            return BadRequest("İstfadəçi tapılmadı.");
+            return BadRequest(new { message = "İstifadəçi tapılmadı." });
         }
 
-        // Create a new chat
         var chat = new Chat
         {
             UserId = user.Id,
@@ -273,12 +240,13 @@ public class ChatController : ControllerBase
             Messages = new List<Message>()
         };
 
-        // Save the new chat
         _dbContext.Chats.Add(chat);
         await _dbContext.SaveChangesAsync();
 
         return Ok(new { chatId = chat.Id });
     }
+
+
 
 
     [HttpGet("get-messages/{chatId}")]
@@ -290,15 +258,16 @@ public class ChatController : ControllerBase
 
         if (chat == null)
         {
-            return NotFound("Chat bulunamadı.");
+            return NotFound("Chat Tapılmadı.");
         }
 
         var messages = chat.Messages
             .Select(m => new
             {
-                m.Content,
-                m.Role,
-                m.SentAt
+                ContentUser = m.ContentUser,
+                ContentBot = m.ContentBot,
+                SentAt = m.SentAt,
+                UpdateTime = m.UpdateTime
             })
             .OrderBy(m => m.SentAt)
             .ToList();
@@ -309,7 +278,7 @@ public class ChatController : ControllerBase
 
     public class CreateChatRequest
     {
-        public string UserId { get; set; }
+
         public string Title { get; set; }
     }
 
@@ -326,5 +295,5 @@ public class SendMessageRequest
 {
     public string Message { get; set; }
   
-    public int? ChatId { get; set; } // Add ChatId property to pass chat ID
+    public int? ChatId { get; set; } 
 }
