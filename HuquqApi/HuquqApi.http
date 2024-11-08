@@ -1,0 +1,6 @@
+@HuquqApi_HostAddress = http://localhost:5272
+
+GET {{HuquqApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

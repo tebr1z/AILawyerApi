@@ -1,0 +1,73 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>We Have Received Your Message</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+        }
+
+            .header h1 {
+                margin: 0;
+            }
+
+        .content {
+            padding: 20px;
+        }
+
+            .content h2 {
+                color: #333333;
+            }
+
+            .content p {
+                color: #555555;
+                line-height: 1.6;
+            }
+
+        .footer {
+            text-align: center;
+            color: #888888;
+            font-size: 12px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>We Have Received Your Message</h1>
+        </div>
+        <div class="content">
+            <h2>Hello {{FullName}},</h2>
+            <p>We have received your message and will get back to you as soon as possible.</p>
+            <p>Thank you for reaching out to us. Your phone number: {{PhoneNumber}}</p>
+        </div>
+        <div class="footer">
+            <p>© 2024 AiLawyer, All rights reserved.</p>
+            <p>If you have any questions, contact us at <a href="mailto:support@ailawyer.com">support@ailawyer.com</a></p>
+        </div>
+    </div>
+</body>
+</html>
